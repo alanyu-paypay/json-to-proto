@@ -122,6 +122,10 @@ class Analyzer {
         return render(collector.getImports(), collector.getMessages(), lines, this.options);
     }
 
+    camelToSnakeCase(key: string): string {
+        return key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    }
+
     analyzeObject(json: object): string {
         const inlineShift = this.addShift();
         const collector = new Collector();
@@ -131,7 +135,7 @@ class Analyzer {
         for (const [key, value] of Object.entries(json)) {
             const typeName = this.analyzeProperty(key, value, collector, inlineShift)
 
-            lines.push(`    ${typeName} ${key} = ${index};`);
+            lines.push(`    ${typeName} ${this.camelToSnakeCase(key)} = ${index};`);
 
             index += 1;
         }
@@ -322,7 +326,7 @@ class Analyzer {
         for (const [key, value] of Object.entries(source)) {
             const typeName = this.analyzeProperty(key, value, collector, inlineShift)
 
-            lines.push(`${inlineShift}    ${typeName} ${key} = ${index};`);
+            lines.push(`${inlineShift}    ${typeName} ${this.camelToSnakeCase(key)} = ${index};`);
 
             index += 1;
         }
@@ -361,7 +365,8 @@ export function convert(source: string, options: Options): Result {
 }
 
 function toMessageName(source: string): string {
-    return source.charAt(0).toUpperCase() + source.substr(1).toLowerCase();
+    // Convert first letter to upper case
+    return source.charAt(0).toUpperCase() + source.substring(1);
 }
 
 function render(imports: Set<string>, messages: Array<Array<string>>, lines: Array<string>, options: Options): string {
@@ -458,5 +463,5 @@ function numberType(value: number): string {
         return "uint32";
     }
 
-    return "double";
+    return "float";
 }
